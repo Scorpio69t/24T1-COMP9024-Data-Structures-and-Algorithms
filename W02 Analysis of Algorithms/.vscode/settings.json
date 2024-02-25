@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "mystrlen.h": "c",
+        "stdio.h": "c"
+    }
+}

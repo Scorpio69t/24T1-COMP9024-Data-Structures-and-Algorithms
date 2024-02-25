@@ -1,0 +1,11 @@
+inputs value n, stack s
+
+initialize count c
+initialize sum = 0
+
+while sum is less than value
+    pop value from stack v
+    sum += v
+    count ++
+
+return count
