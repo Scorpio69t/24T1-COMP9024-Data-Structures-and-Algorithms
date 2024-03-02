@@ -1,0 +1,20 @@
+A word is a palindrome if its reverse is equal to itself. 
+For example, ABBA is a palindrome, whereas ABCA is not. 
+One way of representing a word in a computer is to have a singly-linked list, 
+where we have a list element for each letter.
+
+// Create an empty linked list 
+// Loop through list and add each element to the head of the list 
+
+
+MAIN [A] [B] [B] [B]
+
+traverse for N / 2
+
+REP = [B] [A] 
+
+second half N / 2 --> End
+
+Check if MAIN[i] == REP[j] 
+
+assumption: size of word is known
