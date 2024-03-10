@@ -55,12 +55,13 @@ NodeT *appendLL(NodeT *list, int d)
       return new;
    }
 
+   // we loop until the end of the list
    while (p->next != NULL)
    {
       p = p->next;
    }
-   p->next = new;
-   return list;
+   p->next = new; // we append the new node
+   return list; // we return the original list
 }
 
 NodeT *deleteHead(NodeT *list)
@@ -87,15 +88,14 @@ void freeLL(NodeT *list)
 
 int main(void)
 {
-   int *n = malloc(sizeof(int));
-   assert(n != NULL);
+   int *n = malloc(sizeof(int)); // when creating a pointer we should always malloc for memory in the heap, otherwise this will result in a segmentation error
+   assert(n != NULL); // we should always assert so that we can confirm memory was sucesfully allocated
 
    NodeT *list = NULL; // list must be instantiated as NULL --> new nodes will point to null, otherwise the linked list will point at an uninitiated value
 
    printf("Enter an integer: ");
-   while (scanf("%d", n) == 1)
+   while (scanf("%d", n) == 1) // Scanf returns 1 when we get a successful result
    {
-      //   list = insertLL(list, *n);
       list = appendLL(list, *n);
       printf("Enter an integer: ");
    }
