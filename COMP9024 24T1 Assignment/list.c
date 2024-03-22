@@ -38,6 +38,16 @@ typedef struct List_Repr {
     size_t size;
 } List_Repr;
 
+void list_show(list l) {
+    if (l == NULL) return;
+    Node *curr = l->head;
+    while (curr->next != NULL) {
+        printf("[%s]-->", curr->data);
+        curr = curr->next;
+    }
+    printf("[%s]\n", curr->data);
+}
+
 
 list list_create(void) {
     list l = malloc(sizeof(List_Repr));
@@ -90,13 +100,21 @@ void list_push(list l, string s) {
 string list_pop(list l) {
     if (l == NULL || l->head == NULL) return NULL;
 
+    printf("Before pop");
+    list_show(l);
     Node *temp_head = l->head;
-    string data = temp_head->data;
+    string data = l->head->data;
 
-    l->head = l->head->next;
+    if (l->head->next != NULL) {
+        l->head = l->head->next;
+    } else {
+        l->head = NULL;
+    }
+
     l->size--;
+
     free(temp_head);
-    
+
     return data;
 }
 
@@ -118,15 +136,24 @@ string list_dequeue(list l) {
     if (l == NULL || l->head == NULL) return NULL;
 
     Node *curr = l->head;
+    string data;
 
-    while (curr->next->next != NULL) {
-        curr = curr->next;
-    }
+    if (curr->next == NULL) {
+        // If there is only one element
+        data = curr->data;
+        l->size = 0;
+        free(curr);
+    } else {
+        // Stop at the second last element
+        while (curr->next->next != NULL) {
+            curr = curr->next;
+        }
 
-    string data = curr->next->data;
-    free(curr->next);
-    curr->next = NULL;
-    l->size--;
+        data = curr->next->data;
+        l->size--;
+        free(curr->next);
+        
+    }    
     
     return data;
 }
@@ -134,15 +161,51 @@ string list_dequeue(list l) {
 
 /******************************* SET INTERFACE ********************************/
 void list_add(list l, string s) {
-    printf("TODO");
+    if (list_contains(l,s)) list_enqueue(l,s);
 }
 
 void list_remove(list l, string s) {
-    printf("TODO");
+    if (l == NULL || s == NULL) return;
+
+    Node *curr = l->head;
+
+    // first node
+    if (curr->data == s) {
+        l->head = curr->next;
+        free(curr);
+        return;
+    }
+
+    // middle nodes
+    while (curr->next != NULL) {
+        if (curr->next->data == s) {
+            Node *temp = curr->next;
+            curr->next = curr->next->next;
+            free(temp);
+            return;
+        }
+        curr = curr->next;
+    }
+
+    // last node
+    if (curr->data == s) free(curr);
+    return;
 }
 
 bool list_contains(list l, string s) {
-    return false;
+    if (l == NULL || s == NULL) return false;
+
+    Node *curr = l->head;
+
+    if (curr == NULL) return false;
+
+    while (curr->next != NULL) {
+        if (curr->data == s) return false;
+        curr = curr->next;
+    }
+    if (curr->data == s) return false;
+    
+    return true;
 }
 
 // scp list.c z5114919@login.cse.unsw.edu.au:~/9024/assignment
