@@ -1,3 +1,5 @@
+// kevinngx - z5114919@ad.unsw.edu.au
+
 // You have been provided with a file list.h. Examine the file carefully. It provides the interface for an ADT that will provide Queue, Stack, and Set functionality.
 
 // Your task is to implement the functions prototyped in the list.h header file within list.c.
@@ -27,45 +29,41 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
-typedef struct Node {
+typedef struct Node
+{
     string data;
     struct Node *next;
 } Node;
 
-typedef struct List_Repr {
+typedef struct List_Repr
+{
     struct Node *head;
     size_t size;
 } List_Repr;
 
-void list_show(list l) {
-    if (l == NULL) return;
-    Node *curr = l->head;
-    while (curr->next != NULL) {
-        printf("[%s]-->", curr->data);
-        curr = curr->next;
-    }
-    printf("[%s]\n", curr->data);
-}
-
-
-list list_create(void) {
+list list_create(void)
+{
+    // Allocate memory for the list
     list l = malloc(sizeof(List_Repr));
     assert(l != NULL);
 
+    // Assign default values
     l->head = NULL;
     l->size = 0;
 
     return l;
 }
 
-void list_destroy(list l) {
-    // if(l != NULL || l->head == NULL);
+void list_destroy(list l)
+{
+    if (l != NULL || l->head == NULL)
+        return;
 
     Node *curr = l->head;
     Node *prev = NULL;
 
-    while (curr->next != NULL) {
+    while (curr->next != NULL)
+    {
         prev = curr;
         curr = curr->next;
         free(prev);
@@ -74,138 +72,180 @@ void list_destroy(list l) {
     l->size = 0;
 }
 
-bool list_is_empty(list l) {
-    if (l->size == 0) return true;
-    else return false;
+bool list_is_empty(list l)
+{
+    if (l->size == 0)
+        return true;
+    else
+        return false;
 }
 
-size_t list_length(list l) {
+size_t list_length(list l)
+{
     return l->size;
 };
 
-
 /****************************** STACK INTERFACE *******************************/
-void list_push(list l, string s) {
-    if (l == NULL || s == NULL) return;
+void list_push(list l, string s)
+{
+    if (l == NULL || s == NULL)
+        return;
     Node *new = malloc(sizeof(Node));
     assert(new != NULL);
 
-    new->data = s;
+    // Dynamically allocate memory for data and then copy data from string
+    string input_data = malloc(strlen(s) + 1); // length of string + 1 for null terminator
+    strcpy(input_data, s);
+    new->data = input_data;
     new->next = l->head;
 
     l->head = new;
     l->size++;
 }
 
-string list_pop(list l) {
-    if (l == NULL || l->head == NULL) return NULL;
-
-    printf("Before pop");
-    list_show(l);
+string list_pop(list l)
+{
+    if (l == NULL || l->head == NULL)
+        return NULL;
     Node *temp_head = l->head;
+
     string data = l->head->data;
 
-    if (l->head->next != NULL) {
+    if (l->head->next != NULL)
+    {
         l->head = l->head->next;
-    } else {
+    }
+    else
+    {
         l->head = NULL;
     }
-
     l->size--;
-
     free(temp_head);
-
     return data;
 }
 
-
 /****************************** QUEUE INTERFACE *******************************/
-void list_enqueue(list l, string s) {
-    if (l == NULL || s == NULL) return;
+void list_enqueue(list l, string s)
+{
+    if (l == NULL || s == NULL)
+        return;
     Node *new = malloc(sizeof(Node));
     assert(new != NULL);
 
-    new->data = s;
+    string input_data = malloc(strlen(s) + 1); // length of string + 1 for null terminator
+    strcpy(input_data, s);
+    new->data = input_data;
+
     new->next = l->head;
 
     l->head = new;
     l->size++;
 }
 
-string list_dequeue(list l) {
-    if (l == NULL || l->head == NULL) return NULL;
+string list_dequeue(list l)
+{
+    if (l == NULL || l->head == NULL)
+        return NULL;
 
     Node *curr = l->head;
     string data;
 
-    if (curr->next == NULL) {
+    if (curr->next == NULL)
+    {
         // If there is only one element
         data = curr->data;
         l->size = 0;
         free(curr);
-    } else {
+    }
+    else
+    {
         // Stop at the second last element
-        while (curr->next->next != NULL) {
+        while (curr->next->next != NULL)
+        {
             curr = curr->next;
         }
-
         data = curr->next->data;
-        l->size--;
         free(curr->next);
-        
-    }    
-    
+        curr->next = NULL;
+        l->size--;
+    }
+
     return data;
 }
 
-
 /******************************* SET INTERFACE ********************************/
-void list_add(list l, string s) {
-    if (list_contains(l,s)) list_enqueue(l,s);
+void list_add(list l, string s)
+{
+    if (!list_contains(l, s))
+    {
+        list_enqueue(l, s);
+    }
 }
 
-void list_remove(list l, string s) {
-    if (l == NULL || s == NULL) return;
+void list_remove(list l, string s)
+{
+    if (l == NULL || l->head == NULL || s == NULL)
+        return;
 
     Node *curr = l->head;
 
     // first node
-    if (curr->data == s) {
+    if (strcmp(curr->data, s) == 0)
+    {
         l->head = curr->next;
         free(curr);
+        l->size--;
         return;
     }
 
     // middle nodes
-    while (curr->next != NULL) {
-        if (curr->next->data == s) {
+    while (curr->next != NULL)
+    {
+        if (curr->next->data == s)
+        {
             Node *temp = curr->next;
             curr->next = curr->next->next;
             free(temp);
+            l->size--;
             return;
         }
         curr = curr->next;
     }
 
     // last node
-    if (curr->data == s) free(curr);
+    if (strcmp(curr->data, s) == 0)
+    {
+        free(curr);
+        l->size--;
+    }
     return;
 }
 
-bool list_contains(list l, string s) {
-    if (l == NULL || s == NULL) return false;
-
+bool list_contains(list l, string s)
+{
+    if (l == NULL || s == NULL)
+        return false;
     Node *curr = l->head;
 
-    if (curr == NULL) return false;
+    // List is empty
+    if (curr == NULL)
+        return false;
 
-    while (curr->next != NULL) {
-        if (curr->data == s) return false;
+    // All elements
+    while (curr->next != NULL)
+    {
+        if (strcmp(curr->data, s) == 0)
+            return true;
         curr = curr->next;
     }
-    if (curr->data == s) return false;
-    
-    return true;
+
+    // Final element
+    if (strcmp(curr->data, s) == 0)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 // scp list.c z5114919@login.cse.unsw.edu.au:~/9024/assignment
