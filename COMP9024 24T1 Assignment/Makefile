@@ -19,22 +19,35 @@
 # 	rm -rf *.dSYM
 
 
-##################### Test Make #####################
-
-
 CC      = gcc
 CFLAGS  = -Wall -Wextra -std=c11
 
-testFile : testFile.o list.o
-	$(CC) $(CFLAGS) -o testFile testFile.o list.o
 
-testFile.o : testFile.c list.h
-	$(CC) $(CFLAGS) -c testFile.c
+
+##################### Test List #####################
+
+# testList : testList.o list.o
+# 	$(CC) $(CFLAGS) -o testList testList.o list.o
+
+# testList.o : testList.c list.h
+# 	$(CC) $(CFLAGS) -c testList.c
+
+
+##################### Test Graph #####################
+
+testGraph : testGraph.o graph.o list.o
+	$(CC) $(CFLAGS) -o testGraph testGraph.o graph.o list.o
+
+testGraph.o : testGraph.c graph.h
+	$(CC) $(CFLAGS) -c testGraph.c
+
+##################### ADTs #####################
+
+graph.o : graph.c graph.h list.o
+	$(CC) $(CFLAGS) -c graph.c
 
 list.o : list.c list.h
 	$(CC) $(CFLAGS) -c list.c
 
-
 clean:
-	rm -f *.o, testFile
-
+	rm -f *.o, testGraph, testList

@@ -56,7 +56,7 @@ list list_create(void)
 
 void list_destroy(list l)
 {
-    if (l != NULL || l->head == NULL)
+    if (l == NULL || l->head == NULL) // changed this from l != NULL, should be correct but might break
         return;
 
     Node *curr = l->head;
