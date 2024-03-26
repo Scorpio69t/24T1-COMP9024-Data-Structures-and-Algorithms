@@ -71,7 +71,7 @@ bool vertex_has_edge(Edge *edge_list, string destination) {
     printf("Checking if this vertex contains [%s]\n", destination);
 
     if (edge_list == NULL || edge_list->destination == NULL) {
-        printf("Checkpoing A\n");
+        printf("Checkpoint A\n");
         return false;
     }
 
@@ -80,7 +80,7 @@ bool vertex_has_edge(Edge *edge_list, string destination) {
     while (curr_edge->next != NULL) {
         printf("Edge found -->[%s]\n", curr_edge->destination);
         if (curr_edge->destination == destination) {
-            printf("Checkpoing B\n");
+            printf("Checkpoint B\n");
             return true;
         }
         curr_edge = curr_edge->next;
@@ -89,7 +89,7 @@ bool vertex_has_edge(Edge *edge_list, string destination) {
 
     if (curr_edge->destination == destination) {
         return true;
-        printf("Checkpoing C\n");
+        printf("Checkpoint C\n");
     }
     
     return false;
