@@ -149,9 +149,9 @@ void show_vertex_edges(Edge *edge_list, FILE *f, string label, list ignore_list)
     Edge *curr_edge = edge_list;
     while (curr_edge->next != NULL)
     {
+        // for all edges linked to the vertex
         if (list_contains(ignore_list, curr_edge->destination) == false)
         {
-
             if (f != NULL)
             {
                 fprintf(f, "%s %s %zu\n", label, curr_edge->destination, curr_edge->weight);
@@ -163,6 +163,7 @@ void show_vertex_edges(Edge *edge_list, FILE *f, string label, list ignore_list)
         }
         curr_edge = curr_edge->next;
     }
+    // repeat for last element
     if (list_contains(ignore_list, curr_edge->destination) == false)
     {
         if (f != NULL)
@@ -188,6 +189,7 @@ void graph_show(graph g, FILE *f, list ignore_list)
 
     while (curr_vertex->next != NULL)
     {
+        // For all vertexes
         if (list_contains(ignore_list, curr_vertex->label) == false)
         {
             if (f != NULL)
@@ -201,6 +203,7 @@ void graph_show(graph g, FILE *f, list ignore_list)
         }
         curr_vertex = curr_vertex->next;
     }
+    // One more time for the last one
     if (list_contains(ignore_list, curr_vertex->label) == false)
     {
         if (f != NULL)
@@ -326,7 +329,7 @@ void graph_add_edge(graph g, string source, string destination, size_t weight)
     if (g == NULL || g->vertices_head == NULL || source == NULL || destination == NULL)
         return;
 
-    // printf("Adding edge: [%s]--%zu-->[%s]\n", source, weight, destination);
+    // printf("Attempting to add edge: [%s]--%zu-->[%s]\n", source, weight, destination);
 
     // If graph already has this edge, do nothing
     // printf("Checking if the graph already has edge\n");
@@ -359,11 +362,42 @@ void graph_add_edge(graph g, string source, string destination, size_t weight)
             string dest = malloc(strlen(destination) + 1);
             strcpy(dest, destination);
             newEdge->destination = dest;
-            newEdge->next = curr_vertex->edges;
             newEdge->weight = weight;
-            curr_vertex->edges = newEdge;
-            // printf("Added.\n");
-            return;
+
+            // Code for prepending, replace with appending
+            // newEdge->next = curr_vertex->edges;
+            // curr_vertex->edges = newEdge;
+            newEdge->next = NULL;
+
+
+            // if (g->vertices_head == NULL)
+            // {
+            //     // Add the new Vertex as the head of ther vertices list
+            //     g->vertices_head = newVertex;
+            //     return;
+            // }
+            // else
+            // {
+            //     // Append to the end
+            //     Vertex *curr = g->vertices_head;
+            //     while (curr->next != NULL)
+            //     {
+            //         curr = curr->next;
+            //     }
+            //     curr->next = newVertex;
+            // }
+
+            if (curr_vertex->edges == NULL) {
+                curr_vertex->edges = newEdge;
+            } else {
+                Edge *curr_edge = curr_vertex->edges;
+                while (curr_edge->next != NULL) {
+                    curr_edge = curr_edge->next;
+                }
+                curr_edge->next = newEdge;
+            }
+            // printf(" ... Succesfully added!\n");
+            
         }
         curr_vertex = curr_vertex->next;
     }
