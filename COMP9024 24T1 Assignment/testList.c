@@ -148,5 +148,30 @@ int main()
     printf("Final List: ");
     list_show(set);
 
+    // Test Case #4 List Contains
+    printf("\n--------------------- Test Case #4 List Contains ---------------------\n");
+    stack = list_create();
+    printf("Stack height: %zu\n", list_length(stack));
+
+    // Pushing data to the stack
+    for (int i = 0; i < 4; i++)
+    {
+        line = data[i];
+        printf("Push: %s\n", line);
+        list_push(stack, line);
+    }
+
+    string search = "http://www.cse.unsw.edu.au/~cs9024/ro-web/X.html";
+    printf("Checking list contains: %s\n", search);
+    bool contains = list_contains(stack, search);
+    if (contains) {
+        printf("Contains!\n");
+    } else {
+        printf("Does not contain\n");
+    }
+
+    
+
+
     return 0;
 }

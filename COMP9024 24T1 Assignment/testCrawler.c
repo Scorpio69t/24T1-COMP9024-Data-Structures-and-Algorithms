@@ -1,3 +1,5 @@
+// scp crawler.c list.c graph.c z5114919@login.cse.unsw.edu.au:~/9024/assignment
+
 /**
  * Use libcurl and libxml2 to create a web crawler
  *
@@ -68,16 +70,17 @@ int main(int argc, char **argv)
     /* NOTE: Uncomment this block once you have completed the 
         appropriate list functions */
     
-    char ignore_url[BUFSIZ];
-    printf("Enter a page to ignore or type 'done': ");
-    while (scanf("%s", ignore_url)) {
-       if (strcmp(ignore_url, "done") == 0) {
-           break;
-       }
-       list_add(ignore_list, ignore_url);
-       printf("Enter another page to ignore or type 'done': ");
-    }
+    //char ignore_url[BUFSIZ];
+    //printf("Enter a page to ignore or type 'done': ");
+    //while (scanf("%s", ignore_url)) {
+    //    if (strcmp(ignore_url, "done") == 0) {
+    //        break;
+    //    }
+    //    list_add(ignore_list, ignore_url);
+    //    printf("Enter another page to ignore or type 'done': ");
+    //}
     
+    printf("Showing Graph: \n");
     graph_show(web, stdout, ignore_list);
     
     // Cleanup
@@ -93,13 +96,18 @@ int main(int argc, char **argv)
 // webpage fetcher using libcurl
 graph follow_link(string base_url)
 {
+    printf("Following Link\n"); // REMOVE THIS LINE
     curl_global_init(CURL_GLOBAL_ALL);
     list queue    = list_create();
     list visited  = list_create();
     graph web = graph_create();
+    printf("Graph Created\n"); // REMOVE THIS LINE
+
     list_enqueue(queue, base_url);
     list_add(visited, base_url);
-    while (!list_is_empty(queue)) {
+
+    printf("Crawlig Queue\n"); // REMOVE THIS LINE
+    while (!list_is_empty(queue)) {    
         char *url, *ctype;
         memory *mem;
         base_url = list_dequeue(queue);
@@ -116,6 +124,7 @@ graph follow_link(string base_url)
             if (res_status == 200) {
                 printf("HTTP 200: %s\n", base_url);
                 if (is_html(ctype)) {
+                    printf("Finding Links\n"); // REMOVE THIS LINE
                     find_links(queue, visited, web, mem, url, base_url);
                 }
             } else {
@@ -160,7 +169,11 @@ void find_links(list queue, list visited, graph web, memory *mem, string url, st
         return;
     }
 
+    list ignore_list = list_create();
+    list_add(ignore_list, "Hello");
+
     for (int i = 0; i < nodeset->nodeNr; i++) {
+        printf("Looping here iteration i = [%d]\n", i); // REMOVE THIS
         const xmlNode *node = nodeset->nodeTab[i]->xmlChildrenNode;
         xmlChar *href = xmlNodeListGetString(doc, node, 1);
         xmlChar *orig = href;
@@ -174,6 +187,11 @@ void find_links(list queue, list visited, graph web, memory *mem, string url, st
         // we only want a map of hyperlinks, so restrict the scheme to http[s]
         if (!strncmp(link, "http://", 7) || !strncmp(link, "https://", 8)) {
             // use `base_url` not url as `url` has had redirects dereferenced
+            printf("Adding / Incrementing link [%s]-->[%s]\n", base_url, link); // REMOVE THIS LINE
+            printf("Graph before: \n"); // REMOVE THIS LINE
+            printf("Vertices count = %zu\n", graph_vertices_count(web)); // REMOVE THIS LINE
+            // graph_show(web, NULL, ignore_list); // REMOVE THIS LINE
+            printf("end showing\n");
             add_or_increment_edge(web, base_url, link);
             // have some manners and restrict hyperlinks to domains inside UNSW CSE, and that we haven't already visited.
             if ((strstr(link, "cse.unsw.edu.au") || strstr(link, "localhost")) && !list_contains(visited, link)) {
@@ -238,9 +256,14 @@ int is_html(char *ctype)
 
 void add_or_increment_edge(graph g, string vertex1, string vertex2)
 {
+    printf("\n\n-----------------add_or_increment: vertex1 = %s, vertex2 = %s -----------------\n", vertex1, vertex2);
+
+    printf("Checking if graph has vertex\n"); // REMOVE THIS LINE
+    graph_show(g, NULL, NULL); //REMOVE THIS LINE
     if (!graph_has_vertex(g, vertex1)) graph_add_vertex(g, vertex1);
     if (!graph_has_vertex(g, vertex2)) graph_add_vertex(g, vertex2);
 
+    printf("Checking if graph has edge\n"); // REMOVE THIS LINE
     if (!graph_has_edge(g, vertex1, vertex2)) graph_add_edge(g, vertex1, vertex2,   1);
-    else graph_set_edge(g, vertex1, vertex2,  graph_get_edge(g, vertex1, vertex2) + 1);
+    else graph_set_edge(g, vertex1, vertex2,  graph_get_edge(g, vertex1, vertex2) + 1); 
 }
