@@ -1,23 +1,7 @@
 // kevinngx - z5114919@ad.unsw.edu.au
 // scp graph.c z5114919@login.cse.unsw.edu.au:~/9024/assignment
 // scp makefile testGraph.c list.c list.h graph.c graph.h z5114919@login.cse.unsw.edu.au:~/9024/test_assignment_files
-
-// You have been provided with a file graph.h. Examine the file carefully. It provides the interface for an ADT that will provide Graph functionality. The graph is both weighted and directed.
-
-// Your task is to implement the functions prototyped in the graph.h header file within graph.c.
-
-// You must create the file graph.c to implement this ADT.
-// You must use an adjacency list representation, but the exact representation is up to you.
-// You must use string (char *) data to label the vertices.
-// You must allocate memory dynamically.
-// You must not modify the graph.h file.
-// You must not modify the function prototypes declared in the graph.h file.
-// You may add utility functions to the graph.c file.
-// You may use the string.h library, and other standard libraries from the weekly exercises.
-// You may reuse code previously submitted for weekly assessments and provided in the lectures.
-// You should write programs that use your ADT to test and debug your code.
-// You should use valgrind to verify that your ADT does not leak memory.
-// See graph.h for more information about each function that you are required to implement.
+// scp crawler.c list.c graph.c z5114919@login.cse.unsw.edu.au:~/9024/assignment
 
 #include "graph.h"
 #include "list.h"
@@ -351,61 +335,56 @@ void graph_add_edge(graph g, string source, string destination, size_t weight)
 
     // printf("Attempting to add edge: \n");
     Vertex *curr_vertex = g->vertices_head;
-    
+    Edge *newEdge = malloc(sizeof(Edge));
+    string dest = malloc(strlen(destination) + 1);
+    strcpy(dest, destination);
+    newEdge->destination = dest;
+    newEdge->weight = weight;
+    newEdge->next = NULL;
 
     while (curr_vertex->next != NULL)
     {
         // We enqueue a new edge IF the graph does not yet have this edge
         if (strcmp(curr_vertex->label, source) == 0)
         {
-            Edge *newEdge = malloc(sizeof(Edge));
-            string dest = malloc(strlen(destination) + 1);
-            strcpy(dest, destination);
-            newEdge->destination = dest;
-            newEdge->weight = weight;
-
-            // Code for prepending, replace with appending
-            // newEdge->next = curr_vertex->edges;
-            // curr_vertex->edges = newEdge;
-            newEdge->next = NULL;
-
-
-            // if (g->vertices_head == NULL)
-            // {
-            //     // Add the new Vertex as the head of ther vertices list
-            //     g->vertices_head = newVertex;
-            //     return;
-            // }
-            // else
-            // {
-            //     // Append to the end
-            //     Vertex *curr = g->vertices_head;
-            //     while (curr->next != NULL)
-            //     {
-            //         curr = curr->next;
-            //     }
-            //     curr->next = newVertex;
-            // }
-
-            if (curr_vertex->edges == NULL) {
+            if (curr_vertex->edges == NULL)
+            {
                 curr_vertex->edges = newEdge;
-            } else {
+            }
+            else
+            {
                 Edge *curr_edge = curr_vertex->edges;
-                while (curr_edge->next != NULL) {
+                while (curr_edge->next != NULL)
+                {
                     curr_edge = curr_edge->next;
                 }
                 curr_edge->next = newEdge;
             }
-            // printf(" ... Succesfully added!\n");
-            
+            // printf("[%s]-%zu->[%s] Succesfully added!\n", source, weight, destination);
         }
         curr_vertex = curr_vertex->next;
     }
-    
-    // if (strcmp(curr_vertex->label, source) == 0)
-    // {
-    //     curr_vertex->edges = newEdge;
-    // }
+
+    // Add for final element
+    if (strcmp(curr_vertex->label, source) == 0)
+    {
+        {
+            if (curr_vertex->edges == NULL)
+            {
+                curr_vertex->edges = newEdge;
+            }
+            else
+            {
+                Edge *curr_edge = curr_vertex->edges;
+                while (curr_edge->next != NULL)
+                {
+                    curr_edge = curr_edge->next;
+                }
+                curr_edge->next = newEdge;
+            }
+            // printf("[%s]-%zu->[%s] Succesfully added!\n", source, weight, destination);
+        }
+    }
 }
 
 bool graph_has_edge(graph g, string source, string destination)
