@@ -6,9 +6,6 @@
 #include "graph.h"
 #include "pagerank.h"
 #include "list.h"
-#include "math.h"
-#include "dijkstra.h"
-
 #include "string.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -20,8 +17,6 @@ typedef struct Vertex
     string label;
     struct Edge *edges;
     struct Vertex *next;
-    double old_rank;
-    double page_rank;
 } Vertex;
 
 // Each edge has a destination and weight (do not need source)
@@ -39,12 +34,6 @@ typedef struct Graph_Repr
     // int nV; // Lectures had these but not sure if we need
     // int nE; // For counts, we can just loop through the adjacency lists
 } Graph_Repr;
-
-typedef struct
-{
-    char *label;
-    double page_rank;
-} NodeInfo;
 
 /***************************** HELPER FUNCTIONS ******************************/
 
@@ -85,13 +74,18 @@ bool vertex_has_edge(Edge *edge_list, string destination)
     Edge *curr_edge = NULL;
     curr_edge = edge_list;
 
-    while (curr_edge != NULL)
+    while (curr_edge->next != NULL)
     {
         if (strcmp(curr_edge->destination, destination) == 0)
         {
             return true;
         }
         curr_edge = curr_edge->next;
+    }
+
+    if (strcmp(curr_edge->destination, destination) == 0)
+    {
+        return true;
     }
 
     return false;
@@ -106,6 +100,11 @@ graph graph_create(void)
     assert(g != NULL);
 
     g->vertices_head = NULL;
+
+    // Assign default values
+    // g->nV = 0;
+    // g->nE = 0;
+
     return g;
 }
 
@@ -133,7 +132,7 @@ void show_vertex_edges(Edge *edge_list, FILE *f, string label, list ignore_list)
     if (edge_list == NULL)
         return;
     Edge *curr_edge = edge_list;
-    while (curr_edge != NULL)
+    while (curr_edge->next != NULL)
     {
         // for all edges linked to the vertex
         if (list_contains(ignore_list, curr_edge->destination) == false)
@@ -149,6 +148,18 @@ void show_vertex_edges(Edge *edge_list, FILE *f, string label, list ignore_list)
         }
         curr_edge = curr_edge->next;
     }
+    // repeat for last element
+    if (list_contains(ignore_list, curr_edge->destination) == false)
+    {
+        if (f != NULL)
+        {
+            fprintf(f, "%s %s %zu\n", label, curr_edge->destination, curr_edge->weight);
+        }
+        else
+        {
+            printf("%s %s %zu\n", label, curr_edge->destination, curr_edge->weight);
+        }
+    }
 }
 
 void graph_show(graph g, FILE *f, list ignore_list)
@@ -161,7 +172,7 @@ void graph_show(graph g, FILE *f, list ignore_list)
     if (curr_vertex == NULL)
         return;
 
-    while (curr_vertex != NULL)
+    while (curr_vertex->next != NULL)
     {
         // For all vertexes
         if (list_contains(ignore_list, curr_vertex->label) == false)
@@ -177,10 +188,22 @@ void graph_show(graph g, FILE *f, list ignore_list)
         }
         curr_vertex = curr_vertex->next;
     }
+    // One more time for the last one
+    if (list_contains(ignore_list, curr_vertex->label) == false)
+    {
+        if (f != NULL)
+        {
+            fprintf(f, "%s\n", curr_vertex->label);
+        }
+        else
+        {
+            printf("%s\n", curr_vertex->label);
+        }
+    }
 
     // Print out edges
     curr_vertex = g->vertices_head;
-    while (curr_vertex != NULL)
+    while (curr_vertex->next != NULL)
     {
         if (list_contains(ignore_list, curr_vertex->label) == false)
         {
@@ -188,6 +211,10 @@ void graph_show(graph g, FILE *f, list ignore_list)
         }
 
         curr_vertex = curr_vertex->next;
+    }
+    if (list_contains(ignore_list, curr_vertex->label) == false)
+    {
+        show_vertex_edges(curr_vertex->edges, f, curr_vertex->label, ignore_list);
     }
 }
 
@@ -210,6 +237,8 @@ void graph_add_vertex(graph g, string s)
         newVertex->next = NULL;
 
         // Prepend to the list
+        // newVertex->next = g->vertices_head;
+        // g->vertices_head = newVertex;
 
         if (g->vertices_head == NULL)
         {
@@ -247,12 +276,19 @@ bool graph_has_vertex(graph g, string s)
     graph_show(g, NULL, NULL);
 
     // Check all elements
-    while (curr != NULL)
+    while (curr->next != NULL)
     {
         if (strcmp(curr->label, s) == 0)
             return true;
         curr = curr->next;
     }
+
+    // Final element
+    if (strcmp(curr->label, s) == 0)
+    {
+        return true;
+    }
+
     return false;
 }
 
@@ -307,7 +343,7 @@ void graph_add_edge(graph g, string source, string destination, size_t weight)
     newEdge->weight = weight;
     newEdge->next = NULL;
 
-    while (curr_vertex != NULL)
+    while (curr_vertex->next != NULL)
     {
         // We enqueue a new edge IF the graph does not yet have this edge
         if (strcmp(curr_vertex->label, source) == 0)
@@ -329,6 +365,27 @@ void graph_add_edge(graph g, string source, string destination, size_t weight)
         }
         curr_vertex = curr_vertex->next;
     }
+
+    // Add for final element
+    if (strcmp(curr_vertex->label, source) == 0)
+    {
+        {
+            if (curr_vertex->edges == NULL)
+            {
+                curr_vertex->edges = newEdge;
+            }
+            else
+            {
+                Edge *curr_edge = curr_vertex->edges;
+                while (curr_edge->next != NULL)
+                {
+                    curr_edge = curr_edge->next;
+                }
+                curr_edge->next = newEdge;
+            }
+            // printf("[%s]-%zu->[%s] Succesfully added!\n", source, weight, destination);
+        }
+    }
 }
 
 bool graph_has_edge(graph g, string source, string destination)
@@ -344,7 +401,7 @@ bool graph_has_edge(graph g, string source, string destination)
         return false;
 
     Vertex *curr_vertex = g->vertices_head;
-    while (curr_vertex != NULL)
+    while (curr_vertex->next != NULL)
     {
         if (strcmp(curr_vertex->label, source) == 0)
         {
@@ -353,7 +410,8 @@ bool graph_has_edge(graph g, string source, string destination)
         }
         curr_vertex = curr_vertex->next;
     }
-    return false;
+
+    return vertex_has_edge(curr_vertex->edges, destination);
 }
 
 void vertex_set_edge(Edge *edge_list, string destination, size_t weight)
@@ -361,7 +419,7 @@ void vertex_set_edge(Edge *edge_list, string destination, size_t weight)
     if (edge_list == NULL)
         return;
     Edge *curr_edge = edge_list;
-    while (curr_edge != NULL)
+    while (curr_edge->next != NULL)
     {
         if (strcmp(curr_edge->destination, destination) == 0)
         {
@@ -369,6 +427,12 @@ void vertex_set_edge(Edge *edge_list, string destination, size_t weight)
             return;
         }
         curr_edge = curr_edge->next;
+    }
+
+    if (strcmp(curr_edge->destination, destination) == 0)
+    {
+        curr_edge->weight = weight;
+        return;
     }
 }
 
@@ -383,7 +447,7 @@ void graph_set_edge(graph g, string source, string destination, size_t weight)
 
     // Loop until we find the source vertex and then set the edge
     Vertex *curr_vertex = g->vertices_head;
-    while (curr_vertex != NULL)
+    while (curr_vertex->next != NULL)
     {
         if (strcmp(curr_vertex->label, source) == 0)
         {
@@ -393,6 +457,8 @@ void graph_set_edge(graph g, string source, string destination, size_t weight)
         }
         curr_vertex = curr_vertex->next;
     }
+
+    vertex_set_edge(curr_vertex->edges, destination, weight);
 }
 
 size_t vertex_get_edge(Edge *edge_list, string destination)
@@ -401,7 +467,7 @@ size_t vertex_get_edge(Edge *edge_list, string destination)
         return 0;
 
     Edge *curr_edge = edge_list;
-    while (curr_edge != NULL)
+    while (curr_edge->next != NULL)
     {
         if (strcmp(curr_edge->destination, destination) == 0)
         {
@@ -410,6 +476,10 @@ size_t vertex_get_edge(Edge *edge_list, string destination)
         curr_edge = curr_edge->next;
     }
 
+    if (strcmp(curr_edge->destination, destination) == 0)
+    {
+        return curr_edge->weight;
+    }
     return 0;
 }
 
@@ -424,7 +494,7 @@ size_t graph_get_edge(graph g, string source, string destination)
 
     // Loop until we find the source vertex and then set the edge
     Vertex *curr_vertex = g->vertices_head;
-    while (curr_vertex != NULL)
+    while (curr_vertex->next != NULL)
     {
         if (strcmp(curr_vertex->label, source) == 0)
         {
@@ -434,11 +504,12 @@ size_t graph_get_edge(graph g, string source, string destination)
         curr_vertex = curr_vertex->next;
     }
 
-    return 0;
+    return vertex_get_edge(curr_vertex->edges, destination);
 }
 
 size_t vertex_edge_count(Edge *edge_list)
 {
+
     if (edge_list == NULL)
         return 0;
 
@@ -464,7 +535,7 @@ size_t graph_edges_count(graph g, string source)
         return 0;
 
     Vertex *curr_vertex = g->vertices_head;
-    while (curr_vertex != NULL)
+    while (curr_vertex->next != NULL)
     {
         if (strcmp(curr_vertex->label, source) == 0)
         {
@@ -474,225 +545,6 @@ size_t graph_edges_count(graph g, string source)
         curr_vertex = curr_vertex->next;
     }
 
-    return 0;
+    return vertex_edge_count(curr_vertex->edges);
 }
 
-/***************************** PAGERANK INTERFACE ******************************/
-
-size_t vertex_edge_count_with_ignore(Edge *edge_list, list ignore_list)
-{
-    if (edge_list == NULL || ignore_list == NULL)
-        return 0;
-
-    Edge *curr_edge = edge_list;
-    size_t count = 0;
-
-    while (curr_edge != NULL)
-    {
-        if (list_contains(ignore_list, curr_edge->destination) == false)
-        {
-            count++;
-        }
-        curr_edge = curr_edge->next;
-    }
-    return count;
-}
-
-size_t graph_vertices_count_with_ignore(graph g, list ignore_list)
-{
-    if (g == NULL || g->vertices_head == NULL)
-        return 0;
-
-    Vertex *curr = g->vertices_head;
-    int count = 0;
-
-    while (curr != NULL)
-    {
-        if (list_contains(ignore_list, curr->label) == false)
-        {
-            count++;
-        }
-        curr = curr->next;
-    }
-    return count;
-}
-
-void page_rank_vertices(graph g, Vertex *V, double damping_factor, list ignore_list)
-{
-    if (g == NULL || V == NULL || ignore_list == NULL)
-        return;
-    // for all I in vertices of G that have an edge from I to V
-    //     pagerank of V = pagerank of V + ((damping_factor * oldrank of I) / number of outbound edges from I)
-    // end for
-    Vertex *I = NULL;
-    I = g->vertices_head;
-    if (I == NULL)
-        return;
-
-    double n;
-    while (I != NULL)
-    {
-        if (list_contains(ignore_list, I->label) == false && graph_has_edge(g, I->label, V->label))
-        {
-            n = vertex_edge_count_with_ignore(I->edges, ignore_list);
-            V->page_rank = V->page_rank + ((damping_factor * I->old_rank) / n);
-        }
-        I = I->next;
-    }
-}
-
-void graph_pagerank(graph g, double damping_factor, double epsilon, list ignore_list)
-{
-    // procedure graph_pagerank(G, damping_factor, epsilon)
-    if (g == NULL || g->vertices_head == NULL)
-        return;
-
-    // N = number of vertices in G
-    // double n = graph_vertices_count(g) - list_length(ignore_list);
-    double n = graph_vertices_count_with_ignore(g, ignore_list);
-
-    Vertex *V = NULL;
-    V = g->vertices_head;
-    if (V == NULL)
-        return;
-
-    while (V != NULL)
-    {
-        V->old_rank = 0.0;
-        V->page_rank = 1.0 / n;
-        V = V->next;
-    }
-
-    bool converged;
-    do
-    {
-        converged = true;
-
-        V = g->vertices_head;
-        if (V == NULL)
-            return;
-        while (V != NULL)
-        {
-            V->old_rank = V->page_rank;
-            V = V->next;
-        }
-
-        // sink_rank = 0
-        double sink_rank = 0;
-
-        // Adjust the 'sink' value
-        V = g->vertices_head;
-        if (V == NULL)
-            return;
-        while (V != NULL)
-        {
-            if (list_contains(ignore_list, V->label) == false && vertex_edge_count_with_ignore(V->edges, ignore_list) == 0)
-            {
-                sink_rank = sink_rank + (damping_factor * (V->old_rank / n));
-            }
-            V = V->next;
-        }
-
-        // Update PageRank values
-        V = g->vertices_head;
-        if (V == NULL)
-            return;
-        while (V != NULL)
-        {
-            if (list_contains(ignore_list, V->label) == false)
-            {
-                V->page_rank = sink_rank + ((1 - damping_factor) / n);
-                page_rank_vertices(g, V, damping_factor, ignore_list);
-                // printf("Page Rank [%s] = %.3f\n", V->label, V->page_rank);
-            }
-
-            // Check for convergence
-            if (list_contains(ignore_list, V->label) == false && fabs(V->page_rank - V->old_rank) > epsilon)
-            {
-                converged = false;
-            }
-            V = V->next;
-        }
-    } while (!converged);
-}
-
-// Comparison function for qsort
-int compare_page_rank(const void *a, const void *b)
-{
-    const NodeInfo *nodeA = (const NodeInfo *)a;
-    const NodeInfo *nodeB = (const NodeInfo *)b;
-
-    if (nodeA->page_rank > nodeB->page_rank)
-        return -1; // Descending order
-    if (nodeA->page_rank < nodeB->page_rank)
-        return 1;
-    return 0;
-}
-
-void graph_show_pagerank(graph g, FILE *f, list ignore_list)
-{
-    if (g == NULL || ignore_list == NULL)
-        return;
-
-    // Calculate array size
-    int num_nodes = 0;
-    Vertex *curr_vertex = g->vertices_head;
-    while (curr_vertex != NULL)
-    {
-        if (list_contains(ignore_list, curr_vertex->label) == false)
-        {
-            num_nodes++;
-        }
-        curr_vertex = curr_vertex->next;
-    }
-
-    // Create array to store node data
-    NodeInfo *node_info = malloc(num_nodes * sizeof(NodeInfo));
-    if (node_info == NULL)
-    {
-        fprintf(stderr, "Error allocating memory\n");
-        return;
-    }
-
-    // Populate array
-    int i = 0;
-    curr_vertex = g->vertices_head;
-    while (curr_vertex != NULL)
-    {
-        if (list_contains(ignore_list, curr_vertex->label) == false)
-        {
-            node_info[i].label = curr_vertex->label;
-            node_info[i].page_rank = curr_vertex->page_rank;
-            i++;
-        }
-        curr_vertex = curr_vertex->next;
-    }
-
-    // Sort array by page_rank (descending) using qsort
-    qsort(node_info, num_nodes, sizeof(NodeInfo), compare_page_rank);
-
-    // Print sorted vertices
-    for (i = 0; i < num_nodes; i++)
-    {
-        if (f != NULL)
-        {
-            fprintf(f, "%s: %.3f\n", node_info[i].label, node_info[i].page_rank);
-        }
-        else
-        {
-            printf("%s: %.3f\n", node_info[i].label, node_info[i].page_rank);
-        }
-    }
-
-    free(node_info);
-}
-
-/***************************** DIJKSTRA INTERFACE ******************************/
-
-void graph_shortest_path(graph g, string source, list ignore_list) {
-    printf("graph_shortest_path()\n");
-}
-
-void graph_show_path(graph g, FILE *out_file, string destination, list ignore_list) {
-    printf("graph_show_path()\n");
-}

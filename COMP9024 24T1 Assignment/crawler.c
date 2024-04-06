@@ -21,6 +21,7 @@
 
 #include "list.h"
 #include "graph.h"
+#include "pagerank.h"
 
 /* resizable buffer */
 typedef struct memory {
@@ -80,6 +81,19 @@ int main(int argc, char **argv)
     
     graph_show(web, stdout, ignore_list);
     
+    // Pagerank
+    double damping = 0.8;
+    double epsilon = 0.00001;
+    graph_pagerank(web, damping, epsilon, ignore_list);
+    graph_show_pagerank(web, stdout, ignore_list);
+
+    // Dijkstra
+    graph_shortest_path(web, argv[1], ignore_list);
+    char destination[BUFSIZ];
+    printf("destination: ");
+    scanf("%s", destination);
+    graph_show_path(web, stdout, destination, ignore_list);
+
     // Cleanup
     list_destroy(ignore_list);
     graph_destroy(web);
