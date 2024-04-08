@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "pqueue.h": "c"
+        "pqueue.h": "c",
+        "limits": "c",
+        "ratio": "c",
+        "algorithm": "c"
     }
 }
